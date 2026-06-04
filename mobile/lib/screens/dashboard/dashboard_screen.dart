@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:sensors_plus/sensors_plus.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/booking_provider.dart';
@@ -136,13 +140,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
 
-            // Book CTA
+            // Book CTA with Parallax Depth
             SliverToBoxAdapter(
-              child: GestureDetector(
-                onTap: () => context.push('/book-pickup'),
-                child: Container(
-                  margin: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-                  padding: const EdgeInsets.all(20),
+              child: StreamBuilder<AccelerometerEvent>(
+                stream: accelerometerEventStream(),
+                builder: (context, snapshot) {
+                  final double xOffset = (snapshot.data?.x ?? 0) * -1.5;
+                  final double yOffset = (snapshot.data?.y ?? 0) * -1.5;
+
+                  return GestureDetector(
+                    onTap: () => context.push('/book-pickup'),
+                    child: Transform.translate(
+                      offset: Offset(xOffset.clamp(-15.0, 15.0), yOffset.clamp(-15.0, 15.0)),
+                      child: Container(
+                        margin: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+                        padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [AppColors.primary, AppColors.primaryDark],
@@ -191,10 +203,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           child: Text('🚚', style: TextStyle(fontSize: 30)),
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
+                    ),
+                  );
+                },
+              ).animate().fade(duration: 400.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuart),
             ),
 
             // Quick Actions
@@ -220,8 +232,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             emoji: '⚡',
                             title: 'Immediate',
                             subtitle: 'Pickup now',
-                            onTap: () => context.push('/booking-address', extra: 'IMMEDIATE'),
-                          ),
+                            onTap: () {
+                              HapticFeedback.lightImpact();
+                              context.push('/booking-address', extra: 'IMMEDIATE');
+                            },
+                          ).animate().fade(delay: 100.ms, duration: 400.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuart),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -229,8 +244,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             emoji: '📅',
                             title: 'Schedule',
                             subtitle: 'Pick a time',
-                            onTap: () => context.push('/booking-address', extra: 'SCHEDULED'),
-                          ),
+                            onTap: () {
+                              HapticFeedback.lightImpact();
+                              context.push('/booking-address', extra: 'SCHEDULED');
+                            },
+                          ).animate().fade(delay: 150.ms, duration: 400.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuart),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -238,8 +256,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             emoji: '📋',
                             title: 'History',
                             subtitle: 'All bookings',
-                            onTap: () => context.go('/history'),
-                          ),
+                            onTap: () {
+                              HapticFeedback.lightImpact();
+                              context.go('/history');
+                            },
+                          ).animate().fade(delay: 200.ms, duration: 400.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuart),
                         ),
                       ],
                     ),
@@ -320,30 +341,70 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ],
 
+            // Loading state (Shimmer)
+            if (bookings.isLoading && bookings.bookings.isEmpty)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                  child: Shimmer.fromColors(
+                    baseColor: AppColors.surface,
+                    highlightColor: AppColors.surfaceElevated,
+                    child: Column(
+                      children: List.generate(
+                        2,
+                        (index) => Container(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          height: 120,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
             // Empty state
             if (bookings.bookings.isEmpty && !bookings.isLoading)
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 60),
+                  padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 24),
                   child: Column(
-                    children: const [
-                      Text('🌍', style: TextStyle(fontSize: 64)),
-                      SizedBox(height: 16),
-                      Text(
-                        'No pickups yet',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
+                    children: [
+                      // Stunning visual empty state
+                      Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: const Color(0xFF0F0F0F),
+                          border: Border.all(color: AppColors.border, width: 2),
+                          boxShadow: [
+                            BoxShadow(color: AppColors.primary.withOpacity(0.1), blurRadius: 40, spreadRadius: 10),
+                          ],
                         ),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Book your first pickup and help keep the city clean!',
+                        child: const Center(
+                          child: Text('🌿', style: TextStyle(fontSize: 50)),
+                        ),
+                      ).animate().fade(duration: 500.ms).scale(begin: const Offset(0.8, 0.8), curve: Curves.easeOutBack),
+                      const SizedBox(height: 24),
+                      const Text(
+                        'Your Canvas is Clean',
                         style: TextStyle(
-                            color: AppColors.textSecondary, fontSize: 14),
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary,
+                          letterSpacing: -0.5,
+                        ),
+                      ).animate().fade(delay: 100.ms, duration: 400.ms).slideY(begin: 0.2),
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Book your first pickup and help us build a greener, cleaner world today.',
+                        style: TextStyle(color: AppColors.textSecondary, fontSize: 14, height: 1.5),
                         textAlign: TextAlign.center,
-                      ),
+                      ).animate().fade(delay: 200.ms, duration: 400.ms).slideY(begin: 0.2),
                     ],
                   ),
                 ),

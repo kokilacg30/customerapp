@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../core/theme/app_theme.dart';
 
@@ -59,6 +60,7 @@ class _AppButtonState extends State<AppButton> with SingleTickerProviderStateMix
   void _onTapUp(TapUpDetails details) {
     _controller.reverse();
     if (widget.onPressed != null && !widget.isLoading) {
+      HapticFeedback.lightImpact();
       widget.onPressed!();
     }
   }

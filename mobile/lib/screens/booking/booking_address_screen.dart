@@ -320,7 +320,7 @@ class _BookingAddressScreenState extends State<BookingAddressScreen> {
                               ),
                               children: [
                                 TileLayer(
-                                  urlTemplate: 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+                                  urlTemplate: 'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
                                   userAgentPackageName: 'com.example.takemytrash',
                                 ),
                               ],

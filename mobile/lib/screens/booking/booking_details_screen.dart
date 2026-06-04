@@ -20,6 +20,16 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
   final _dateCtrl = TextEditingController();
   final _timeCtrl = TextEditingController();
 
+  Color get _activeThemeColor {
+    return switch (_selectedWaste) {
+      'recyclable' => Colors.cyanAccent,
+      'organic' => Colors.greenAccent,
+      'electronic' => Colors.purpleAccent,
+      'hazardous' => Colors.redAccent,
+      _ => AppColors.primary,
+    };
+  }
+
   int? get _estimatedPrice {
     if (_selectedWaste.isEmpty || _selectedQuantity.isEmpty) return null;
     final q = AppConstants.quantities.firstWhere((q) => q['value'] == _selectedQuantity);
@@ -197,10 +207,10 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                             width: (MediaQuery.of(context).size.width - 48 - 24) / 3,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             decoration: BoxDecoration(
-                              color: isSelected ? AppColors.primaryLight : AppColors.surface,
+                              color: isSelected ? _activeThemeColor.withOpacity(0.15) : AppColors.surface,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: isSelected ? AppColors.primary : AppColors.border,
+                                color: isSelected ? _activeThemeColor : AppColors.border,
                                 width: 1.5,
                               ),
                             ),
@@ -211,7 +221,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                                 Text(w['label']!,
                                     style: TextStyle(
                                       fontSize: 10, fontWeight: FontWeight.w600,
-                                      color: isSelected ? AppColors.primary : AppColors.textMuted,
+                                      color: isSelected ? _activeThemeColor : AppColors.textMuted,
                                     ), textAlign: TextAlign.center),
                               ],
                             ),
@@ -244,18 +254,18 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: isSelected ? AppColors.primary : AppColors.border,
+                                      color: isSelected ? _activeThemeColor : AppColors.border,
                                       width: 2,
                                     ),
                                   ),
                                   child: isSelected
-                                      ? Center(child: Container(width: 10, height: 10, decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle)))
+                                      ? Center(child: Container(width: 10, height: 10, decoration: BoxDecoration(color: _activeThemeColor, shape: BoxShape.circle)))
                                       : null,
                                 ),
                                 title: Text(q['label'] as String,
-                                    style: TextStyle(fontSize: 13, color: isSelected ? AppColors.primary : AppColors.textSecondary, fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400)),
+                                    style: TextStyle(fontSize: 13, color: isSelected ? _activeThemeColor : AppColors.textSecondary, fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400)),
                                 trailing: Text('₹${q['price']}',
-                                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _activeThemeColor)),
                               ),
                               if (i < AppConstants.quantities.length - 1)
                                 const Divider(height: 1),
@@ -307,9 +317,9 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: AppColors.primaryLight,
+                          color: _activeThemeColor.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.primary),
+                          border: Border.all(color: _activeThemeColor),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -317,7 +327,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                             const Text('Estimated Price',
                                 style: TextStyle(fontSize: 14, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
                             Text('₹$_estimatedPrice',
-                                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.primary)),
+                                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: _activeThemeColor)),
                           ],
                         ),
                       ),

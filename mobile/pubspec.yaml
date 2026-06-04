@@ -57,6 +57,11 @@ dependencies:
   # HTTP (for Razorpay webhook)
   http: ^1.2.2
 
+  # Advanced UI Masterpiece Packages
+  flutter_slidable: ^3.1.1
+  lottie: ^3.1.2
+  sensors_plus: ^5.0.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../core/theme/app_theme.dart';
 
@@ -42,10 +43,29 @@ class AppTextField extends StatefulWidget {
 
 class _AppTextFieldState extends State<AppTextField> {
   bool _obscure = true;
+  late FocusNode _focusNode;
+  bool _isFocused = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode = FocusNode();
+    _focusNode.addListener(() {
+      setState(() {
+        _isFocused = _focusNode.hasFocus;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    Widget field = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (widget.label != null) ...[
@@ -60,8 +80,24 @@ class _AppTextFieldState extends State<AppTextField> {
           ),
           const SizedBox(height: 8),
         ],
-        TextFormField(
-          controller: widget.controller,
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutQuart,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16), // Match theme border radius
+            boxShadow: _isFocused
+                ? [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.15),
+                      blurRadius: 20,
+                      spreadRadius: 2,
+                    )
+                  ]
+                : [],
+          ),
+          child: TextFormField(
+            focusNode: _focusNode,
+            controller: widget.controller,
           obscureText: widget.isPassword && _obscure,
           keyboardType: widget.keyboardType,
           validator: widget.validator,
@@ -101,5 +137,11 @@ class _AppTextFieldState extends State<AppTextField> {
         const SizedBox(height: 16),
       ],
     );
+
+    if (widget.errorText != null) {
+      field = field.animate(key: ValueKey(widget.errorText)).shakeX(duration: 400.ms, hz: 4, amount: 6);
+    }
+
+    return field;
   }
 }
