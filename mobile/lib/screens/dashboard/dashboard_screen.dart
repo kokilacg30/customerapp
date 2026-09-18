@@ -179,7 +179,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w800,
-                                color: Colors.black,
+                                color: Colors.white,
                               ),
                             ),
                             SizedBox(height: 4),
@@ -187,7 +187,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               'Immediate or scheduled — your choice',
                               style: TextStyle(
                                   fontSize: 13,
-                                  color: Colors.black87),
+                                  color: Colors.white70),
                             ),
                           ],
                         ),
@@ -196,18 +196,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         width: 56,
                         height: 56,
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.white.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: const Center(
                           child: Text('🚚', style: TextStyle(fontSize: 30)),
                         ),
                       ),
-                    ),
-                  );
-                },
-              ).animate().fade(duration: 400.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuart),
-            ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        ).animate().fade(duration: 400.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuart),
+      ),
 
             // Quick Actions
             SliverToBoxAdapter(
@@ -379,7 +382,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         height: 120,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: const Color(0xFF0F0F0F),
+                          color: Colors.white,
                           border: Border.all(color: AppColors.border, width: 2),
                           boxShadow: [
                             BoxShadow(color: AppColors.primary.withOpacity(0.1), blurRadius: 40, spreadRadius: 10),
@@ -454,7 +457,7 @@ class _StatCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w800,
-                color: isHighlighted ? Colors.black : AppColors.textPrimary,
+                color: isHighlighted ? Colors.white : AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 4),
@@ -463,7 +466,7 @@ class _StatCard extends StatelessWidget {
               style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: isHighlighted ? Colors.black54 : AppColors.textSecondary),
+                  color: isHighlighted ? Colors.white70 : AppColors.textSecondary),
             ),
           ],
         ),

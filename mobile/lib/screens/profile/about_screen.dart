@@ -31,7 +31,7 @@ class AboutScreen extends StatelessWidget {
                 height: 120,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFF0A0A0A),
+                  color: Colors.white,
                   border: Border.all(color: AppColors.primary.withOpacity(0.8), width: 1.5),
                   boxShadow: [
                     BoxShadow(

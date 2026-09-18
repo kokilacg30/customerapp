@@ -154,7 +154,7 @@ class _PickupTypeCard extends StatelessWidget {
               child: Center(
                 child: Text(
                   emoji, 
-                  style: const TextStyle(fontSize: 26, color: Colors.black),
+                  style: const TextStyle(fontSize: 26, color: Colors.white),
                 ),
               ),
             ),

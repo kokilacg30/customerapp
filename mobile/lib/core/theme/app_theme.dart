@@ -2,25 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
-  // Brand - Neon Yellow-Green
-  static const primary = Color(0xFFD8FF42);
-  static const primaryDark = Color(0xFFB5E600);
-  static const primaryLight = Color(0x33D8FF42);
+  // Brand - Dark Green
+  static const primary = Color(0xFF1B4332);
+  static const primaryDark = Color(0xFF081C15);
+  static const primaryLight = Color(0x331B4332);
   
   // Accent
-  static const accent = Color(0xFFFFFFFF);
-  static const accentLight = Color(0xFFA1A1AA);
+  static const accent = Color(0xFF1B4332);
+  static const accentLight = Color(0xFF95D5B2);
 
   // Background / Surfaces
-  static const background = Color(0xFF000000); // Pure Black
-  static const surface = Color(0xFF111111); // Very dark gray for cards
-  static const surfaceElevated = Color(0xFF161616); // For text field fills
-  static const border = Color(0xFF222222); // Subtle dark borders
+  static const background = Color(0xFFFFFFFF); // Pure White
+  static const surface = Color(0xFFF8F9FA); // Very light gray for cards
+  static const surfaceElevated = Color(0xFFF1F3F5); // For text field fills
+  static const border = Color(0xFFE9ECEF); // Subtle light borders
 
   // Text
-  static const textPrimary = Color(0xFFFFFFFF);
-  static const textSecondary = Color(0xFF888888);
-  static const textMuted = Color(0xFF666666);
+  static const textPrimary = Color(0xFF212529); // Almost black
+  static const textSecondary = Color(0xFF495057);
+  static const textMuted = Color(0xFFADB5BD);
 
   // Status
   static const success = Color(0xFF10B981);
@@ -33,19 +33,19 @@ class AppColors {
 }
 
 class AppTheme {
-  static ThemeData get darkTheme {
-    final baseTextTheme = GoogleFonts.plusJakartaSansTextTheme(ThemeData.dark().textTheme);
+  static ThemeData get lightTheme {
+    final baseTextTheme = GoogleFonts.plusJakartaSansTextTheme(ThemeData.light().textTheme);
 
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.dark,
+      brightness: Brightness.light,
       scaffoldBackgroundColor: AppColors.background,
-      colorScheme: const ColorScheme.dark(
+      colorScheme: const ColorScheme.light(
         primary: AppColors.primary,
         secondary: AppColors.primaryLight,
         surface: AppColors.surface,
         error: AppColors.error,
-        onPrimary: Colors.black,
+        onPrimary: Colors.white,
         onSecondary: AppColors.textPrimary,
         onSurface: AppColors.textPrimary,
         onError: Colors.white,
@@ -112,7 +112,7 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
-          foregroundColor: Colors.black, // Black text on neon green button
+          foregroundColor: Colors.white, // White text on dark green button
           minimumSize: const Size(double.infinity, 56),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
           elevation: 0, // Flat design as per reference
@@ -136,7 +136,7 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.surfaceElevated, // Dark matte fill
+        fillColor: AppColors.surfaceElevated, // Light matte fill
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: AppColors.border, width: 1),
@@ -181,4 +181,3 @@ class AppTheme {
     );
   }
 }
-

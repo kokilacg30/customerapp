@@ -15,8 +15,11 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _nameCtrl = TextEditingController();
+  final _usernameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
+  final _latCtrl = TextEditingController();
+  final _lngCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   final _confirmCtrl = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -36,8 +39,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
     try {
       await auth.register(
         name: _nameCtrl.text.trim(),
+        username: _usernameCtrl.text.trim(),
         email: _emailCtrl.text.trim(),
         phone: _phoneCtrl.text.trim(),
+        lat: _latCtrl.text.trim(),
+        lng: _lngCtrl.text.trim(),
         password: _passwordCtrl.text,
       );
     } catch (_) {}
@@ -46,8 +52,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   void dispose() {
     _nameCtrl.dispose();
+    _usernameCtrl.dispose();
     _emailCtrl.dispose();
     _phoneCtrl.dispose();
+    _latCtrl.dispose();
+    _lngCtrl.dispose();
     _passwordCtrl.dispose();
     _confirmCtrl.dispose();
     super.dispose();
@@ -75,7 +84,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   height: 90,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: const Color(0xFF0A0A0A), // Very dark core
+                    color: Colors.white, // White core
                     border: Border.all(color: AppColors.primary.withOpacity(0.8), width: 1.5),
                     boxShadow: [
                       BoxShadow(
@@ -148,6 +157,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       (v == null || v.isEmpty) ? 'Name is required' : null,
                 ),
                 AppTextField(
+                  label: 'Username',
+                  hint: 'Choose a username',
+                  controller: _usernameCtrl,
+                  prefixIcon: Icons.alternate_email,
+                  validator: (v) =>
+                      (v == null || v.isEmpty) ? 'Username is required' : null,
+                ),
+                AppTextField(
                   label: 'Email Address',
                   hint: 'you@example.com',
                   controller: _emailCtrl,
@@ -169,6 +186,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     if (v == null || v.length != 10) return 'Enter 10-digit phone';
                     return null;
                   },
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: AppTextField(
+                        label: 'Latitude',
+                        hint: 'e.g. 12.9716',
+                        controller: _latCtrl,
+                        prefixIcon: Icons.location_on_outlined,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: AppTextField(
+                        label: 'Longitude',
+                        hint: 'e.g. 77.5946',
+                        controller: _lngCtrl,
+                        prefixIcon: Icons.location_on_outlined,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+                      ),
+                    ),
+                  ],
                 ),
                 AppTextField(
                   label: 'Password',

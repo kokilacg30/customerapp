@@ -58,7 +58,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   height: 90,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: const Color(0xFF0A0A0A), // Very dark core
+                    color: Colors.white, // White core
                     border: Border.all(color: AppColors.primary.withOpacity(0.8), width: 1.5),
                     boxShadow: [
                       BoxShadow(

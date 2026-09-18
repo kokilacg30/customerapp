@@ -15,12 +15,12 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  // Dark system UI
+  // Light system UI
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.light,
-    systemNavigationBarColor: Color(0xFF0A0F14),
-    systemNavigationBarIconBrightness: Brightness.light,
+    statusBarIconBrightness: Brightness.dark,
+    systemNavigationBarColor: Color(0xFFFFFFFF),
+    systemNavigationBarIconBrightness: Brightness.dark,
   ));
 
   runApp(const TakeMyTrashApp());
@@ -42,7 +42,7 @@ class TakeMyTrashApp extends StatelessWidget {
           return MaterialApp.router(
             title: 'TakeMyTrash',
             debugShowCheckedModeBanner: false,
-            theme: AppTheme.darkTheme,
+            theme: AppTheme.lightTheme,
             routerConfig: router,
           );
         },

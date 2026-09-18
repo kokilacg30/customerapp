@@ -134,6 +134,7 @@ class _AppTextFieldState extends State<AppTextField> {
                     : null),
           ),
         ),
+        ),
         const SizedBox(height: 16),
       ],
     );

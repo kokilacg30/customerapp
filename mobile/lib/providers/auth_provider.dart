@@ -77,9 +77,12 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> register({
     required String name,
+    required String username,
     required String email,
     required String phone,
     required String password,
+    required String lat,
+    required String lng,
   }) async {
     _error = null;
     _isLoading = true;
@@ -88,9 +91,12 @@ class AuthProvider extends ChangeNotifier {
     try {
       final response = await ApiClient.instance.post('/auth/register', data: {
         'name': name,
+        'username': username,
         'email': email,
         'phone': phone,
         'password': password,
+        'lat': lat,
+        'lng': lng,
       });
 
       final data = response.data['data'] as Map<String, dynamic>;

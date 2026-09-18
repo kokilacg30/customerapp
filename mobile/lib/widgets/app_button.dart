@@ -74,7 +74,7 @@ class _AppButtonState extends State<AppButton> with SingleTickerProviderStateMix
     Color fgColor;
     switch (widget.variant) {
       case AppButtonVariant.primary:
-        fgColor = widget.onPressed == null ? Colors.black54 : Colors.black;
+        fgColor = widget.onPressed == null ? Colors.white54 : Colors.white;
         break;
       case AppButtonVariant.danger:
         fgColor = widget.onPressed == null ? Colors.white54 : Colors.white;
@@ -120,7 +120,7 @@ class _AppButtonState extends State<AppButton> with SingleTickerProviderStateMix
           disabledBackgroundColor: widget.onPressed == null ? AppColors.primary.withOpacity(0.2) : AppColors.primary,
           disabledForegroundColor: fgColor,
           backgroundColor: AppColors.primary,
-          foregroundColor: Colors.black,
+          foregroundColor: Colors.white,
           minimumSize: Size(widget.fullWidth ? double.infinity : 0, widget.height),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
           elevation: 0,

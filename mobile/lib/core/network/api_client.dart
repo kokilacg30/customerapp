@@ -21,60 +21,151 @@ class ApiClient {
   }
 
   static void _setupInterceptors() {
-    // Request: attach token
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
-        final token = await SecureStorageService.getAccessToken();
-        if (token != null) {
-          options.headers['Authorization'] = 'Bearer $token';
-        }
-        handler.next(options);
-      },
+        print('[MOCK API] Intercepted Request: ${options.method} ${options.path}');
+        
+        await Future.delayed(const Duration(milliseconds: 500)); // Simulate network latency
 
-      // Response: handle token refresh on 401
-      onError: (error, handler) async {
-        if (error.response?.statusCode == 401 &&
-            error.response?.data?['code'] == 'TOKEN_EXPIRED') {
-          try {
-            final refreshToken = await SecureStorageService.getRefreshToken();
-            if (refreshToken == null) {
-              handler.next(error);
-              return;
+        if (options.path.contains('/auth/login') || options.path.contains('/auth/register')) {
+          return handler.resolve(Response(
+            requestOptions: options,
+            statusCode: 200,
+            data: {
+              'status': 'success',
+              'data': {
+                'user': {
+                  'id': 'mock-user-id',
+                  'name': 'Demo User',
+                  'email': 'demo@example.com',
+                  'phone': '1234567890',
+                  'role': 'USER',
+                  'createdAt': DateTime.now().toIso8601String(),
+                },
+                'accessToken': 'mock-access-token',
+                'refreshToken': 'mock-refresh-token',
+              }
             }
-
-            final response = await Dio().post(
-              '${AppConstants.apiUrl}/auth/refresh',
-              data: {'refreshToken': refreshToken},
-            );
-
-            final newAccessToken = response.data['data']['accessToken'];
-            final newRefreshToken = response.data['data']['refreshToken'];
-
-            await SecureStorageService.saveTokens(
-              accessToken: newAccessToken,
-              refreshToken: newRefreshToken,
-            );
-
-            // Retry original request
-            error.requestOptions.headers['Authorization'] =
-                'Bearer $newAccessToken';
-            final retryResponse = await _dio.fetch(error.requestOptions);
-            handler.resolve(retryResponse);
-          } catch (_) {
-            await SecureStorageService.clearTokens();
-            handler.next(error);
-          }
-        } else {
-          handler.next(error);
+          ));
         }
-      },
-    ));
 
-    // Logging in debug mode
-    _dio.interceptors.add(LogInterceptor(
-      requestBody: true,
-      responseBody: true,
-      logPrint: (o) => print('[API] $o'),
+        if (options.path.contains('/users/me')) {
+          return handler.resolve(Response(
+            requestOptions: options,
+            statusCode: 200,
+            data: {
+              'status': 'success',
+              'data': {
+                'id': 'mock-user-id',
+                'name': 'Demo User',
+                'email': 'demo@example.com',
+                'phone': '1234567890',
+                'role': 'USER',
+                'createdAt': DateTime.now().toIso8601String(),
+              }
+            }
+          ));
+        }
+
+        if (options.path.contains('/bookings')) {
+          if (options.method == 'GET') {
+            return handler.resolve(Response(
+              requestOptions: options,
+              statusCode: 200,
+              data: {
+                'status': 'success',
+                'data': {
+                  'bookings': [],
+                  'pagination': {
+                    'page': 1,
+                    'pages': 1,
+                    'total': 0,
+                  }
+                }
+              }
+            ));
+          } else if (options.method == 'POST') {
+             return handler.resolve(Response(
+              requestOptions: options,
+              statusCode: 201,
+              data: {
+                'status': 'success',
+                'data': {
+                  'id': 'mock-booking-id',
+                  'userId': 'mock-user-id',
+                  'type': options.data['type'] ?? 'IMMEDIATE',
+                  'status': 'PENDING',
+                  'addressLine': options.data['addressLine'] ?? '',
+                  'latitude': options.data['latitude'] ?? 0.0,
+                  'longitude': options.data['longitude'] ?? 0.0,
+                  'wasteType': options.data['wasteType'] ?? 'general',
+                  'quantity': options.data['quantity'] ?? 'small',
+                  'createdAt': DateTime.now().toIso8601String(),
+                }
+              }
+            ));
+          } else if (options.method == 'PATCH') { // For cancel
+            return handler.resolve(Response(
+              requestOptions: options,
+              statusCode: 200,
+              data: {
+                'status': 'success',
+                'data': {}
+              }
+            ));
+          }
+        }
+
+        if (options.path.contains('/auth/logout')) {
+          return handler.resolve(Response(
+            requestOptions: options,
+            statusCode: 200,
+            data: {'status': 'success'}
+          ));
+        }
+
+        if (options.path.contains('/payments/create-order')) {
+          return handler.resolve(Response(
+            requestOptions: options,
+            statusCode: 200,
+            data: {
+              'status': 'success',
+              'data': {
+                'orderId': 'mock-order-id',
+              }
+            }
+          ));
+        }
+
+        if (options.path.contains('/payments/verify')) {
+          return handler.resolve(Response(
+            requestOptions: options,
+            statusCode: 200,
+            data: {
+              'status': 'success',
+              'data': {}
+            }
+          ));
+        }
+
+        if (options.path.contains('/ratings')) {
+          return handler.resolve(Response(
+            requestOptions: options,
+            statusCode: 200,
+            data: {
+              'status': 'success',
+              'data': {}
+            }
+          ));
+        }
+
+        // Fallback for unmocked routes
+        return handler.resolve(Response(
+          requestOptions: options,
+          statusCode: 200,
+          data: {'status': 'success', 'data': {}}
+        ));
+      },
     ));
   }
 
