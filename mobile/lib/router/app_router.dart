@@ -17,6 +17,12 @@ import '../screens/ondemand/live_tracking_screen.dart';
 import '../screens/ondemand/payment_screen.dart';
 
 import '../screens/profile/profile_screen.dart';
+import '../screens/profile/edit_profile_screen.dart';
+import '../screens/profile/privacy_security_screen.dart';
+import '../screens/profile/notifications_screen.dart';
+import '../screens/profile/help_support_screen.dart';
+import '../screens/profile/terms_service_screen.dart';
+import '../screens/profile/about_screen.dart';
 
 class AppRouter {
   static CustomTransitionPage _buildTransition(Widget child, LocalKey? key) {
@@ -95,6 +101,10 @@ class AppRouter {
               path: '/book',
               pageBuilder: (_, state) => _buildTransition(const BookOndemandScreen(), state.pageKey),
             ),
+            GoRoute(
+              path: '/profile',
+              pageBuilder: (_, state) => _buildTransition(const ProfileScreen(), state.pageKey),
+            ),
           ],
         ),
 
@@ -113,9 +123,31 @@ class AppRouter {
         ),
 
         // Keep profile routes if needed
+        // (Moved /profile into ShellRoute above)
+        
         GoRoute(
-          path: '/profile',
-          pageBuilder: (_, state) => _buildTransition(const ProfileScreen(), state.pageKey),
+          path: '/edit-profile',
+          pageBuilder: (_, state) => _buildTransition(const EditProfileScreen(), state.pageKey),
+        ),
+        GoRoute(
+          path: '/privacy',
+          pageBuilder: (_, state) => _buildTransition(const PrivacySecurityScreen(), state.pageKey),
+        ),
+        GoRoute(
+          path: '/notifications',
+          pageBuilder: (_, state) => _buildTransition(const NotificationsScreen(), state.pageKey),
+        ),
+        GoRoute(
+          path: '/help',
+          pageBuilder: (_, state) => _buildTransition(const HelpSupportScreen(), state.pageKey),
+        ),
+        GoRoute(
+          path: '/terms',
+          pageBuilder: (_, state) => _buildTransition(const TermsServiceScreen(), state.pageKey),
+        ),
+        GoRoute(
+          path: '/about',
+          pageBuilder: (_, state) => _buildTransition(const AboutScreen(), state.pageKey),
         ),
       ],
     );
@@ -133,17 +165,21 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _selectedIndex = 0;
 
-  static const _routes = ['/home', '/report', '/book'];
+  static const _routes = ['/home', '/report', '/book', '/profile'];
 
   void _onTap(int index) {
     if (_selectedIndex == index) {
-      Navigator.pop(context);
+      if (Scaffold.maybeOf(context)?.isDrawerOpen ?? false) {
+        Navigator.pop(context);
+      }
       return;
     }
     HapticFeedback.lightImpact();
     setState(() => _selectedIndex = index);
     context.go(_routes[index]);
-    Navigator.pop(context);
+    if (Scaffold.maybeOf(context)?.isDrawerOpen ?? false) {
+      Navigator.pop(context);
+    }
   }
 
   @override
@@ -203,6 +239,18 @@ class _MainShellState extends State<MainShell> {
                 )
               ),
               onTap: () => _onTap(2),
+            ),
+            ListTile(
+              leading: Icon(_selectedIndex == 3 ? Icons.person : Icons.person_outline,
+                  color: _selectedIndex == 3 ? AppColors.primary : AppColors.textSecondary),
+              title: Text('Profile', 
+                style: TextStyle(
+                  fontFamily: 'Plus Jakarta Sans', 
+                  fontWeight: _selectedIndex == 3 ? FontWeight.w800 : FontWeight.normal,
+                  color: _selectedIndex == 3 ? AppColors.primary : AppColors.textPrimary,
+                )
+              ),
+              onTap: () => _onTap(3),
             ),
           ],
         ),
