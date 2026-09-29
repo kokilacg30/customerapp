@@ -5,7 +5,8 @@ import 'package:latlong2/latlong.dart';
 import 'package:go_router/go_router.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../core/theme/app_theme.dart';
-
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 class HomeMapScreen extends StatefulWidget {
   const HomeMapScreen({super.key});
 
@@ -249,10 +250,12 @@ class _HomeMapScreenState extends State<HomeMapScreen> with SingleTickerProvider
                                 color: AppColors.primary,
                                 shape: BoxShape.circle,
                               ),
-                              child: const Center(
+                              child: Center(
                                 child: Text(
-                                  'VK',
-                                  style: TextStyle(
+                                  context.watch<AuthProvider>().user?.name.isNotEmpty == true 
+                                      ? context.watch<AuthProvider>().user!.name[0].toUpperCase() 
+                                      : 'U',
+                                  style: const TextStyle(
                                     fontFamily: 'Plus Jakarta Sans',
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,

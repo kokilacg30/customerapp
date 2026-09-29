@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:camera/camera.dart';
 import '../../core/theme/app_theme.dart';
 
 class CameraCaptureScreen extends StatefulWidget {
@@ -16,43 +16,59 @@ class CameraCaptureScreen extends StatefulWidget {
 }
 
 class _CameraCaptureScreenState extends State<CameraCaptureScreen> {
+  CameraController? _cameraController;
+  List<CameraDescription>? _cameras;
   bool _isCaptured = false;
   bool _isSubmitting = false;
-  File? _capturedImage;
-  final ImagePicker _picker = ImagePicker();
+  XFile? _capturedImage;
   final TextEditingController _commentController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    // Auto-launch camera when screen is opened
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _captureImage();
-    });
+    _initCamera();
   }
 
-  Future<void> _captureImage() async {
+  Future<void> _initCamera() async {
     try {
-      final XFile? photo = await _picker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 80,
-      );
-      
-      if (photo != null) {
-        setState(() {
-          _capturedImage = File(photo.path);
-          _isCaptured = true;
-        });
+      _cameras = await availableCameras();
+      if (_cameras != null && _cameras!.isNotEmpty) {
+        _cameraController = CameraController(
+          _cameras![0], // First camera (usually back)
+          ResolutionPreset.high,
+          enableAudio: false,
+        );
+        await _cameraController!.initialize();
+        if (mounted) setState(() {});
       } else {
-        // User cancelled, pop back if we don't have an image
-        if (!_isCaptured && mounted) {
-          context.pop();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No camera found on device.')),
+          );
         }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to open camera.')),
+          SnackBar(content: Text('Error initializing camera: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _captureImage() async {
+    if (_cameraController == null || !_cameraController!.value.isInitialized) return;
+    
+    try {
+      final XFile photo = await _cameraController!.takePicture();
+      setState(() {
+        _capturedImage = photo;
+        _isCaptured = true;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to capture image.')),
         );
       }
     }
@@ -63,7 +79,6 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen> {
       _isCaptured = false;
       _capturedImage = null;
     });
-    _captureImage();
   }
 
   Future<void> _submitReport() async {
@@ -88,6 +103,13 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen> {
   }
 
   @override
+  void dispose() {
+    _cameraController?.dispose();
+    _commentController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black, // Camera background is black
@@ -96,13 +118,15 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen> {
           // 1. Camera View Finder or Captured Image
           Positioned.fill(
             child: _isCaptured && _capturedImage != null
-                ? Image.file(
-                    _capturedImage!,
+                ? Image.network(
+                    _capturedImage!.path,
                     fit: BoxFit.cover,
                   )
-                : const Center(
-                    child: CircularProgressIndicator(color: Colors.white),
-                  ),
+                : (_cameraController != null && _cameraController!.value.isInitialized)
+                    ? CameraPreview(_cameraController!)
+                    : const Center(
+                        child: CircularProgressIndicator(color: Colors.white),
+                      ),
           ),
 
           // 1.5 Location Watermark Overlay on Image
@@ -176,7 +200,37 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen> {
             bottom: 0,
             left: 0,
             right: 0,
-            child: _isCaptured ? _buildReviewPanel() : const SizedBox.shrink(),
+            child: _isCaptured
+                ? _buildReviewPanel()
+                : Container(
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.5),
+                    ),
+                    child: Center(
+                      child: GestureDetector(
+                        onTap: _captureImage,
+                        child: Container(
+                          width: 72,
+                          height: 72,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 4),
+                          ),
+                          child: Center(
+                            child: Container(
+                              width: 56,
+                              height: 56,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
           ),
         ],
       ),

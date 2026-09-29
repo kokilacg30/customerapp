@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/app_button.dart';
@@ -18,11 +20,63 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _usernameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
-  final _latCtrl = TextEditingController();
-  final _lngCtrl = TextEditingController();
+  final _addressCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   final _confirmCtrl = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+
+  bool _isFetchingLocation = false;
+
+  Future<void> _getCurrentLocation() async {
+    setState(() => _isFetchingLocation = true);
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) throw Exception('Location services are disabled.');
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw Exception('Location permissions are denied');
+        }
+      }
+      
+      if (permission == LocationPermission.deniedForever) {
+        throw Exception('Location permissions are permanently denied');
+      } 
+
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      
+      final dio = Dio();
+      final response = await dio.get(
+        'https://nominatim.openstreetmap.org/reverse',
+        queryParameters: {
+          'lat': position.latitude,
+          'lon': position.longitude,
+          'format': 'json',
+        },
+      );
+      
+      if (response.data != null && response.data['display_name'] != null) {
+        _addressCtrl.text = response.data['display_name'];
+      } else {
+        throw Exception('Could not fetch address details');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isFetchingLocation = false);
+    }
+  }
 
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
@@ -37,16 +91,55 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
     final auth = context.read<AuthProvider>();
     try {
+      // Basic geocoding with OpenStreetMap Nominatim
+      final dio = Dio();
+      final addressQuery = _addressCtrl.text.trim();
+      
+      final response = await dio.get(
+        'https://nominatim.openstreetmap.org/search',
+        queryParameters: {
+          'q': addressQuery,
+          'format': 'json',
+          'limit': 1,
+        },
+      );
+      
+      if (response.data == null || (response.data as List).isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Could not find location for this address'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+        return;
+      }
+      
+      final location = response.data[0];
+      final lat = location['lat'].toString();
+      final lng = location['lon'].toString();
+
       await auth.register(
         name: _nameCtrl.text.trim(),
         username: _usernameCtrl.text.trim(),
         email: _emailCtrl.text.trim(),
         phone: _phoneCtrl.text.trim(),
-        lat: _latCtrl.text.trim(),
-        lng: _lngCtrl.text.trim(),
+        address: addressQuery,
+        lat: lat,
+        lng: lng,
         password: _passwordCtrl.text,
       );
-    } catch (_) {}
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -55,8 +148,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _usernameCtrl.dispose();
     _emailCtrl.dispose();
     _phoneCtrl.dispose();
-    _latCtrl.dispose();
-    _lngCtrl.dispose();
+    _addressCtrl.dispose();
     _passwordCtrl.dispose();
     _confirmCtrl.dispose();
     super.dispose();
@@ -187,30 +279,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return null;
                   },
                 ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: AppTextField(
-                        label: 'Latitude',
-                        hint: 'e.g. 12.9716',
-                        controller: _latCtrl,
-                        prefixIcon: Icons.location_on_outlined,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: AppTextField(
-                        label: 'Longitude',
-                        hint: 'e.g. 77.5946',
-                        controller: _lngCtrl,
-                        prefixIcon: Icons.location_on_outlined,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
-                      ),
-                    ),
-                  ],
+                AppTextField(
+                  label: 'Home Address',
+                  hint: _isFetchingLocation ? 'Fetching location...' : 'e.g. 123 Main St, Bengaluru',
+                  controller: _addressCtrl,
+                  prefixIcon: Icons.location_on_outlined,
+                  suffixIcon: Icons.my_location,
+                  onSuffixTap: _isFetchingLocation ? null : _getCurrentLocation,
+                  validator: (v) => (v == null || v.isEmpty) ? 'Address is required' : null,
                 ),
                 AppTextField(
                   label: 'Password',

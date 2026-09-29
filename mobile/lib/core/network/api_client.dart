@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'dart:convert';
 import '../storage/secure_storage.dart';
 import '../utils/app_constants.dart';
 
@@ -11,6 +12,17 @@ class ApiClient {
   ));
 
   static bool _interceptorSetup = false;
+
+  static final Map<String, dynamic> _mockUser = {
+    'id': 'mock-user-id',
+    'name': 'Demo User',
+    'email': 'demo@example.com',
+    'phone': '1234567890',
+    'role': 'USER',
+    'createdAt': DateTime.now().toIso8601String(),
+  };
+
+  static bool _isMockUserLoaded = false;
 
   static Dio get instance {
     if (!_interceptorSetup) {
@@ -27,21 +39,32 @@ class ApiClient {
         
         await Future.delayed(const Duration(milliseconds: 500)); // Simulate network latency
 
+        if (!_isMockUserLoaded) {
+          final savedMockUser = await SecureStorageService.getString('mock_user_data');
+          if (savedMockUser != null) {
+            try {
+              final parsed = jsonDecode(savedMockUser) as Map<String, dynamic>;
+              _mockUser.addAll(parsed);
+            } catch (_) {}
+          }
+          _isMockUserLoaded = true;
+        }
+
         if (options.path.contains('/auth/login') || options.path.contains('/auth/register')) {
+          if (options.data is Map) {
+            final reqData = options.data as Map;
+            if (reqData.containsKey('name')) _mockUser['name'] = reqData['name'];
+            if (reqData.containsKey('email')) _mockUser['email'] = reqData['email'];
+            if (reqData.containsKey('phone')) _mockUser['phone'] = reqData['phone'];
+          }
+          await SecureStorageService.saveString('mock_user_data', jsonEncode(_mockUser));
           return handler.resolve(Response(
             requestOptions: options,
             statusCode: 200,
             data: {
               'status': 'success',
               'data': {
-                'user': {
-                  'id': 'mock-user-id',
-                  'name': 'Demo User',
-                  'email': 'demo@example.com',
-                  'phone': '1234567890',
-                  'role': 'USER',
-                  'createdAt': DateTime.now().toIso8601String(),
-                },
+                'user': _mockUser,
                 'accessToken': 'mock-access-token',
                 'refreshToken': 'mock-refresh-token',
               }
@@ -50,19 +73,19 @@ class ApiClient {
         }
 
         if (options.path.contains('/users/me')) {
+          if (options.method == 'PUT' && options.data is Map) {
+            final reqData = options.data as Map;
+            if (reqData.containsKey('name')) _mockUser['name'] = reqData['name'];
+            if (reqData.containsKey('email')) _mockUser['email'] = reqData['email'];
+            if (reqData.containsKey('phone')) _mockUser['phone'] = reqData['phone'];
+            await SecureStorageService.saveString('mock_user_data', jsonEncode(_mockUser));
+          }
           return handler.resolve(Response(
             requestOptions: options,
             statusCode: 200,
             data: {
               'status': 'success',
-              'data': {
-                'id': 'mock-user-id',
-                'name': 'Demo User',
-                'email': 'demo@example.com',
-                'phone': '1234567890',
-                'role': 'USER',
-                'createdAt': DateTime.now().toIso8601String(),
-              }
+              'data': _mockUser,
             }
           ));
         }

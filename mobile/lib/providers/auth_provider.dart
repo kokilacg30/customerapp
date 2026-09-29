@@ -81,6 +81,7 @@ class AuthProvider extends ChangeNotifier {
     required String email,
     required String phone,
     required String password,
+    required String address,
     required String lat,
     required String lng,
   }) async {
@@ -95,6 +96,7 @@ class AuthProvider extends ChangeNotifier {
         'email': email,
         'phone': phone,
         'password': password,
+        'address': address,
         'lat': lat,
         'lng': lng,
       });
