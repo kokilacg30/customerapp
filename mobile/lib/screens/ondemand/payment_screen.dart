@@ -47,7 +47,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
         automaticallyImplyLeading: false, // Don't allow back during payment
       ),
       body: SafeArea(
-        child: _isPaid ? _buildReceipt() : _buildPayment(),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.sizeOf(context).width >= 900 ? 780 : double.infinity,
+            ),
+            child: _isPaid ? _buildReceipt() : _buildPayment(),
+          ),
+        ),
       ),
     );
   }

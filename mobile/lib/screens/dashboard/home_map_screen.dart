@@ -7,6 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import '../../core/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../router/app_router.dart';
 class HomeMapScreen extends StatefulWidget {
   const HomeMapScreen({super.key});
 
@@ -43,8 +44,27 @@ class _HomeMapScreenState extends State<HomeMapScreen> with SingleTickerProvider
     super.dispose();
   }
 
-  void _recenterMap() {
-    _mapController.move(_userLocation, 15.0);
+  bool _isFetchingGPS = false;
+
+  Future<void> _recenterMap() async {
+    setState(() => _isFetchingGPS = true);
+    await _determinePosition();
+    if (mounted) {
+      setState(() => _isFetchingGPS = false);
+      _mapController.move(_userLocation, 16.0);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Centered to live GPS: ${_userLocation.latitude.toStringAsFixed(4)}, ${_userLocation.longitude.toStringAsFixed(4)}',
+            style: const TextStyle(fontFamily: 'Plus Jakarta Sans'),
+          ),
+          backgroundColor: AppColors.primary,
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+    }
   }
 
   Future<void> _determinePosition() async {
@@ -176,10 +196,19 @@ class _HomeMapScreenState extends State<HomeMapScreen> with SingleTickerProvider
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Container(
-                  padding: const EdgeInsets.only(top: 60, left: 24, right: 24, bottom: 20),
+                  padding: EdgeInsets.only(
+                    top: MediaQuery.sizeOf(context).width >= 768
+                        ? 18
+                        : (MediaQuery.paddingOf(context).top + 10),
+                    left: 20,
+                    right: 20,
+                    bottom: 16,
+                  ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.85),
-                    border: Border(bottom: BorderSide(color: AppColors.border.withOpacity(0.5))),
+                    color: Colors.white.withOpacity(0.9),
+                    border: Border(
+                      bottom: BorderSide(color: AppColors.border.withOpacity(0.6)),
+                    ),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -188,19 +217,42 @@ class _HomeMapScreenState extends State<HomeMapScreen> with SingleTickerProvider
                       Row(
                         children: [
                           GestureDetector(
-                            onTap: () => Scaffold.of(context).openDrawer(),
+                            onTap: () => MainShell.openDrawer(),
                             child: Container(
-                              width: 44,
-                              height: 44,
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                               decoration: BoxDecoration(
-                                color: AppColors.surface,
-                                shape: BoxShape.circle,
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
                                 border: Border.all(color: AppColors.border),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.06),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
-                              child: const Icon(Icons.menu, color: AppColors.textPrimary),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.menu_rounded, color: AppColors.primary, size: 20),
+                                  if (MediaQuery.sizeOf(context).width >= 600) ...[
+                                    const SizedBox(width: 8),
+                                    const Text(
+                                      'Menu',
+                                      style: TextStyle(
+                                        fontFamily: 'Plus Jakarta Sans',
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 14),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -208,20 +260,22 @@ class _HomeMapScreenState extends State<HomeMapScreen> with SingleTickerProvider
                                 'Good morning 👋',
                                 style: TextStyle(
                                   fontFamily: 'Plus Jakarta Sans',
-                                  fontSize: 14,
+                                  fontSize: 13,
                                   color: AppColors.textSecondary,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              const Text(
-                                'Keep your neighborhood clean.',
-                                style: TextStyle(
+                              const SizedBox(height: 2),
+                              Text(
+                                MediaQuery.sizeOf(context).width >= 768
+                                    ? 'Neighborhood Waste Monitoring Dashboard'
+                                    : 'Keep your city clean.',
+                                style: const TextStyle(
                                   fontFamily: 'Plus Jakarta Sans',
-                                  fontSize: 18,
+                                  fontSize: 17,
                                   color: AppColors.textPrimary,
                                   fontWeight: FontWeight.w800,
-                                  letterSpacing: -0.5,
+                                  letterSpacing: -0.4,
                                 ),
                               ),
                             ],
@@ -231,21 +285,21 @@ class _HomeMapScreenState extends State<HomeMapScreen> with SingleTickerProvider
                       Row(
                         children: [
                           Container(
-                            width: 44,
-                            height: 44,
+                            width: 40,
+                            height: 40,
                             decoration: BoxDecoration(
                               color: AppColors.surface,
                               shape: BoxShape.circle,
                               border: Border.all(color: AppColors.border),
                             ),
-                            child: const Icon(Icons.notifications_none, color: AppColors.textPrimary),
+                            child: const Icon(Icons.notifications_none, color: AppColors.textPrimary, size: 20),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 10),
                           GestureDetector(
                             onTap: () => context.push('/profile'),
                             child: Container(
-                              width: 44,
-                              height: 44,
+                              width: 40,
+                              height: 40,
                               decoration: const BoxDecoration(
                                 color: AppColors.primary,
                                 shape: BoxShape.circle,
@@ -273,35 +327,50 @@ class _HomeMapScreenState extends State<HomeMapScreen> with SingleTickerProvider
             ),
           ),
 
-          // 3. Floating Controls
+          // 3. Floating Controls (Single Location Button)
           Positioned(
-            right: 24,
-            bottom: 170, // Adjusted after removing the bottom CTA card
-            child: Column(
-              children: [
-                _MapControlButton(
-                  icon: Icons.layers_outlined,
-                  onTap: () {}, // Filter Map
-                ),
-                const SizedBox(height: 12),
-                _MapControlButton(
-                  icon: Icons.my_location,
-                  onTap: _recenterMap,
-                ),
-              ],
-            ),
+            right: 20,
+            bottom: 180,
+            child: _isFetchingGPS
+                ? Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.12),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                      border: Border.all(color: AppColors.primary, width: 1.5),
+                    ),
+                    padding: const EdgeInsets.all(12),
+                    child: const CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: AppColors.primary,
+                    ),
+                  )
+                : _MapControlButton(
+                    icon: Icons.my_location,
+                    tooltip: 'Recenter to current live location',
+                    onTap: _recenterMap,
+                  ),
           ),
 
           // 4. Floating Cards (Tipper)
           Positioned(
-            left: 24,
-            right: 24,
-            bottom: 40, // Pushed to bottom
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Nearest Tipper Card
-                Container(
+            left: 20,
+            right: 20,
+            bottom: 24,
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.sizeOf(context).width >= 900 ? 760 : 540,
+                ),
+                child: Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -398,8 +467,7 @@ class _HomeMapScreenState extends State<HomeMapScreen> with SingleTickerProvider
                     ],
                   ),
                 ),
-
-              ],
+              ),
             ),
           ),
         ],
@@ -411,12 +479,17 @@ class _HomeMapScreenState extends State<HomeMapScreen> with SingleTickerProvider
 class _MapControlButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
+  final String? tooltip;
 
-  const _MapControlButton({required this.icon, required this.onTap});
+  const _MapControlButton({
+    required this.icon,
+    required this.onTap,
+    this.tooltip,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    Widget button = GestureDetector(
       onTap: onTap,
       child: Container(
         width: 48,
@@ -433,8 +506,13 @@ class _MapControlButton extends StatelessWidget {
           ],
           border: Border.all(color: AppColors.border),
         ),
-        child: Icon(icon, color: AppColors.textPrimary, size: 22),
+        child: Icon(icon, color: AppColors.primary, size: 22),
       ),
     );
+
+    if (tooltip != null) {
+      return Tooltip(message: tooltip!, child: button);
+    }
+    return button;
   }
 }

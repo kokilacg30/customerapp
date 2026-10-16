@@ -41,4 +41,6 @@ class SecureStorageService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(key);
   }
+
+  static Future<void> delete(String key) async => deleteKey(key);
 }
